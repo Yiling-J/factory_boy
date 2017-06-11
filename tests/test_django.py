@@ -174,6 +174,19 @@ class ModelTests(django_test.TestCase):
         self.assertFalse(models.StandardModel.objects.exists())
         self.assertEqual(obj, models.StandardModel.objects.using('replica').get())
 
+    def test_cross_database_using(self):
+        class OtherDBFactory(factory.django.DjangoModelFactory):
+            class Meta:
+                model = models.StandardModel
+                database = 'replica'
+
+        OtherDBFactory.using('default').create(foo='foo')
+        self.assertTrue(models.StandardModel.objects.filter(foo='foo').exists())
+        self.assertFalse(models.StandardModel.objects.using('replica').filter(foo='foo').exists())
+        OtherDBFactory.create(foo='foo_bar')
+        self.assertFalse(models.StandardModel.objects.filter(foo='foo_bar').exists())
+        self.assertTrue(models.StandardModel.objects.using('replica').filter(foo='foo_bar').exists())
+
 
 @unittest.skipIf(django is None, "Django not installed.")
 class DjangoPkSequenceTestCase(django_test.TestCase):

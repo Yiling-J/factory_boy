@@ -665,6 +665,13 @@ class BaseFactory(object):
         strategy = enums.CREATE_STRATEGY if create else enums.BUILD_STRATEGY
         return cls.generate_batch(strategy, size, **kwargs)
 
+    @classmethod
+    def using(cls, db):
+        """Select a database like django using()."""
+        new_class = type(cls.__name__, (cls,), {})
+        new_class._meta.database = db
+        return new_class
+
 
 # Note: we're calling str() on the class name to avoid issues with Py2's type() expecting bytes
 # instead of unicode.
